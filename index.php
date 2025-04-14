@@ -28,6 +28,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $tarefas = $tarefa->listar();
+$total = count($tarefas);
+$concluidas  = count(array_filter($tarefas, fn($t) => $t['concluido']));
+$progresso = $total > 0 ? round(($concluidas / $total) * 100) : 0;
+
+$corBarra = match (true) {
+  $progresso <= 30 => 'bg-red-500',
+  $progresso <= 70 => 'bg-yellow-400',
+  $progresso < 100 => 'bg-blue-500',
+  default => 'bg-green-600',
+};
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -54,6 +65,18 @@ $tarefas = $tarefa->listar();
       <button type="submit" class="btn w-full bg-green-500 border-none text-slate-200 hover:bg-green-700">Adicionar</button>
     </form>
 
+    <?php if ($total > 0): ?>
+
+
+      <div class="mb-6">
+        <label class="block mb-1 text-sm font-medium text-slate-600">
+          Progresso: <?= $progresso ?>%
+        </label>
+        <div class="w-full bg-green-200 rounded-full h-4 overflow-hidden">
+          <div class="<?= $corBarra ?> h-4 transition-all" style="width: <?= $progresso ?>%;"></div>
+        </div>
+      </div>
+    <?php endif; ?>
     <ul class="space-y-4">
       <?php foreach ($tarefas as $t): ?>
         <li class="p-4  bg-green-200 shadow rounded-lg flex justify-between items-center">
