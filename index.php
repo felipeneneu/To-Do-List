@@ -2,14 +2,23 @@
 require_once("connect.php");
 require_once("./classes/Tarefa.php");
 
+session_start();
+
+if (!isset($_SESSION['usuario_id'])) {
+  header("Location: ./pages/app.php");
+  exit();
+}
+
 $tarefa = new Tarefa($pdo);
+$user = $_SESSION['usuario_id'];
+$userName = $_SESSION['usuario_nome'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $action = $_POST['action'] ?? '';
   if ($action === 'salvar' && isset($_POST['titulo'])) {
     $titulo = filter_input(INPUT_POST, 'titulo');
     $descricao = filter_input(INPUT_POST, 'descricao');
-    $tarefa->salvar($titulo, $descricao);
+    $tarefa->salvar($titulo, $descricao, $user);
     header("Location: index.php");
     exit();
   }
@@ -27,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   }
 }
 
-$tarefas = $tarefa->listar();
+$tarefas = $tarefa->listar($user);
 $total = count($tarefas);
 $concluidas  = count(array_filter($tarefas, fn($t) => $t['concluido']));
 $progresso = $total > 0 ? round(($concluidas / $total) * 100) : 0;
@@ -56,7 +65,7 @@ $corBarra = match (true) {
   <div class="max-w-xl mx-auto bg-white shadow-lg p-6 rounded-lg">
     <a href="index.php"><img src="./logo.svg" alt="" class="max-w-[200px] mx-auto mb-4"></a>
 
-    <!-- <h1 class="text-3xl font-bold mb-4 text-center text-slate-600">📝 Lista de Tarefas</h1> -->
+    <h1 class="text-3xl font-bold mb-4 text-center text-slate-600">📝 Bem vindo: <?= $userName ?></h1>
 
     <form action="index.php" method="POST" class="flex flex-col gap-4 mb-6">
       <input type="hidden" name="action" value="salvar">
@@ -103,6 +112,13 @@ $corBarra = match (true) {
         </li>
       <?php endforeach; ?>
     </ul>
+  </div>
+  <div class="flex flex-wrap -mx-3 my-5">
+    <div class="w-full max-w-full sm:w-3/4 mx-auto text-center">
+      <p class="text-sm py-1">
+        <a href="./pages/sair.php" class="text-green-900 hover:text-slate-900">Clique para sair.
+      </p>
+    </div>
   </div>
 
 
