@@ -1,22 +1,42 @@
 <?php
-session_start();
-require_once("../connect.php");
-require_once("../classes/Usuario.php");
+require_once __DIR__ . '/../vendor/autoload.php';
 
-$user = new Usuario($pdo);
+use app\database\Connection;
+use Firebase\JWT\JWT;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $email = $_POST['email'];
-  $senha = $_POST['senha'];
+header("Access-Control-Allow-Origin: *");
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
 
-  $logado = $user->auth($email, $senha);
+$email = filter_input(INPUT_POST, 'email');
+$senha = filter_input(INPUT_POST, 'senha');
 
-  if ($logado) {
-    $_SESSION['usuario_id'] = $logado['id'];
-    $_SESSION['usuario_nome'] = $logado['nome'];
-    header("Location: ../index.php");
-    exit();
-  } else {
-    echo "Email ou senha inválidos ou usuário inativo.";
-  }
+// echo json_encode($email);
+
+$pdo = Connection::connect();
+$auth = $pdo->prepare("SELECT * FROM usuario WHERE email = :email AND ativo = 1");
+$auth->execute([
+  'email' => $email
+]);
+
+$user = $auth->fetch();
+
+if (!$user) {
+  http_response_code(401);
 }
+
+if (!password_verify($senha, $user->senha)) {
+  http_response_code(401);
+}
+
+$payload = [
+  "exp" => time() + 2600,
+  "iat" => time(),
+  "email" => $email
+];
+
+$encode = JWT::encode($payload, $_ENV['KEY'], 'HS256');
+echo json_encode($encode);
+
+
+// echo json_encode('teste');

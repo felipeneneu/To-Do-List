@@ -5,6 +5,7 @@
   <link rel="stylesheet"
     href="https://cdn.jsdelivr.net/gh/Loopple/loopple-public-assets@main/motion-tailwind/motion-tailwind.css"
     rel="stylesheet">
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 </head>
 
 <body class="bg-white rounded-lg py-5">
@@ -53,26 +54,53 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script>
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
+    // Seleciona o formulário de login usando o seu ID.
+    const form = document.querySelector("#login-form");
+    // Adiciona um "ouvinte" para o evento de "submit" (quando o botão de "Entrar" é clicado).
+    form.addEventListener('submit', async function(event) {
+      // Impede o comportamento padrão do formulário de recarregar a página.
+      event.preventDefault()
+      try {
+        // Cria um objeto FormData para pegar todos os dados do formulário (email e senha).
+        const formData = new FormData(event.target);
 
-      const form = e.target;
-      const dados = new FormData(form);
+        // Envia uma requisição POST (mais segura para dados de login) para o arquivo '../../pages/login.php' com os dados do formulário usando a biblioteca Axios.
+        const {
+          data
+        } = await axios.post('../../pages/login.php', formData);
 
-      const resposta = await fetch('./login.php', {
-        method: 'POST',
-        body: dados
-      });
-
-      const json = await resposta.json();
-
-      if (resposta.ok) {
-        localStorage.setItem('token', json.token);
-        window.location.href = 'index.php'; // ou qualquer outra página
-      } else {
-        alert(json.erro);
+        // Se a requisição for bem-sucedida, 'data' conterá a resposta do servidor (provavelmente o token de login).
+        // Guarda esse token na sessionStorage (armazenamento temporário no navegador que dura enquanto a aba está aberta) com a chave 'session'.
+        sessionStorage.setItem('session', data);
+        // Cria uma string com o formato "Bearer SEU_TOKEN" para enviar no cabeçalho de autorização.
+        const authSession = 'Bearer ' + sessionStorage.getItem('session');
+        // Faz uma requisição GET para o arquivo 'auth.php' (o arquivo que você mostrou antes para verificar o token).
+        const authResponse = await axios.get('auth.php', {
+          headers: {
+            // Envia o token no cabeçalho "Authorization".
+            "Authorization": authSession
+          }
+        })
+        // Exibe a resposta do 'auth.php' no console do navegador (para você ver se o token é válido).
+        console.log('Auth:', authResponse.data);
+        // *** AQUI É O PONTO CRUCIAL PARA REDIRECIONAR PARA O INDEX ***
+        // Se a autenticação for bem-sucedida (o 'auth.php' retornar um sucesso),
+        // você deve redirecionar o usuário para a página index.php.
+        window.location.href = 'index.php'; // Redireciona para a página index.php
+      } catch (error) {
+        // Se ocorrer algum erro durante a requisição (por exemplo, o login falhou),
+        // exibe o erro no console do navegador para ajudar a depurar.
+        console.log(error);
+        // *** AQUI VOCÊ PODE MOSTRAR UMA MENSAGEM DE ERRO NA TELA ***
+        // Por exemplo, atualizando o conteúdo da div com o id 'error-message'.
+        const errorMessageDiv = document.getElementById('error-message');
+        if (error.response && error.response.data && error.response.data.error) {
+          errorMessageDiv.textContent = error.response.data.error;
+        } else {
+          errorMessageDiv.textContent = 'Erro ao fazer login.';
+        }
       }
-    });
+    })
   </script>
 
 </body>
