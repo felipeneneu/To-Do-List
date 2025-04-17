@@ -43,6 +43,7 @@ try {
 
 // Mestre Kame diz: Preparando as ferramentas de Tarefa para o Guerreiro autenticado!
 $pdo = Connection::connect();
+
 $tarefa = new Tarefa($pdo);
 
 // --- Processamento dos Formulários (Add, Complete, Delete) ---

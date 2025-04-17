@@ -20,18 +20,13 @@ class Usuario
     $auth->bindValue(":email", $email);
     $auth->execute();
 
-    $user = $auth->fetch(PDO::FETCH_ASSOC);
+    $user = $auth->fetch();
 
-    if ($user && password_verify($senha, $user['senha'])) {
-      // Aqui criamos o crachá (token)
-      $payload = [
-        'id' => $user['id'],
-        'nome' => $user['nome'],
-        'exp' => time() + 3600 // expira em 1 hora
+    if ($user && password_verify($senha, $user->senha)) {
+      return [
+        'id' => $user->id,
+        'nome' => $user->nome
       ];
-
-      $jwt = JWT::encode($payload, $this->chaveSecretaDaBulma, 'HS256');
-      return $jwt;
     }
 
     return false;

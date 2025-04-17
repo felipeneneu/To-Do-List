@@ -1,11 +1,16 @@
 <?php
-require_once("connect.php");
+require_once './vendor/autoload.php';
+
+use app\database\Connection;
+
+// require_once("connect.php");
+$pdo = Connection::connect();
 require_once("./classes/Tarefa.php");
 
 session_start();
 
 if (!isset($_SESSION['usuario_id'])) {
-  header("Location: ./pages/app.php");
+  header("Location: ./app.php");
   exit();
 }
 
@@ -69,9 +74,12 @@ $corBarra = match (true) {
 
     <form action="index.php" method="POST" class="flex flex-col gap-4 mb-6">
       <input type="hidden" name="action" value="salvar">
-      <input type="text" name="titulo" placeholder="Título" required class="input input-bordered w-full bg-green-200 text-slate-800 placeholder-green-800">
-      <textarea name="descricao" placeholder="Descrição" class="textarea textarea-bordered w-full bg-green-200 text-slate-800 placeholder-green-800"></textarea>
-      <button type="submit" class="btn w-full bg-green-500 border-none text-slate-200 hover:bg-green-700">Adicionar</button>
+      <input type="text" name="titulo" placeholder="Título" required
+        class="input input-bordered w-full bg-green-200 text-slate-800 placeholder-green-800">
+      <textarea name="descricao" placeholder="Descrição"
+        class="textarea textarea-bordered w-full bg-green-200 text-slate-800 placeholder-green-800"></textarea>
+      <button type="submit"
+        class="btn w-full bg-green-500 border-none text-slate-200 hover:bg-green-700">Adicionar</button>
     </form>
 
     <?php if ($total > 0): ?>
@@ -116,7 +124,7 @@ $corBarra = match (true) {
   <div class="flex flex-wrap -mx-3 my-5">
     <div class="w-full max-w-full sm:w-3/4 mx-auto text-center">
       <p class="text-sm py-1">
-        <a href="./pages/sair.php" class="text-green-900 hover:text-slate-900">Clique para sair.
+        <a href="./sair.php" class="text-green-900 hover:text-slate-900">Clique para sair.
       </p>
     </div>
   </div>
